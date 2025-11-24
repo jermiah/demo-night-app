@@ -18,58 +18,25 @@ If you'd like to contribute to this community project, check out our [issues](ht
 
 Feel free to reach out to us at [engineering@aicollective.com](mailto:engineering@aicollective.com)! 😄
 
-## ⚙️ Getting Started
+## 📚 Documentation
 
-### 1. Install the packages
+- **[Development Guide](./DEVELOPMENT.md)**: How to set up the app locally, run the database, and test features like Match Mode.
+- **[Deployment Guide](./DEPLOYMENT.md)**: How to deploy the application to production (Vercel).
+
+## ⚙️ Quick Start
 
 ```bash
+# 1. Install dependencies
 yarn install
-yarn global add dotenv-cli
-```
 
-### 2. Set up environment variables
-
-For `.env` key/value pairs, see `.env.example`.
-
-### 3. Start the local DB Docker Compose service
-
-```bash
+# 2. Start database (Docker)
 ./start-database.sh
-```
 
-### 4. Push the schema and seed the local DB with a "<test@example.com>" example account and test event
+# 3. Run migrations
+yarn db:migrate
 
-```bash
-yarn db:push
-yarn db:seed
-```
-
-### 5. Start the development server
-
-```bash
+# 4. Start dev server
 yarn dev
 ```
 
-- The local app should now be available at `localhost:3000` and `localhost:3000/admin`!
-- You can log in with "<test@example.com>"
-
-## 📊 Data Ops
-
-### Dev Data Studio
-
-To manipulate the data and relations directly via Prisma during local development:
-
-```bash
-yarn db:studio
-```
-
-### Migration
-
-To alter the data schema (adding/removing/editing columns, changing unique/compound/primary keys, etc.), make changes in `schema.prisma` file, save, and run:
-
-```bash
-yarn db:migrate
-```
-
-- Fixing failed migrations:
-  <https://www.prisma.io/docs/orm/prisma-migrate/workflows/patching-and-hotfixing>
+For detailed instructions, please see the [Development Guide](./DEVELOPMENT.md).
