@@ -61,36 +61,85 @@ The app will be available at **[http://localhost:3000](http://localhost:3000)**.
 
 ---
 
-## 🎮 Testing Features (Match Mode)
+## 📱 Accessing the App
 
-The app includes a "Match Mode" for 1v1 startup battles. Here is how to test it locally.
+Once the server is running (`yarn dev`), you can access the different parts of the application:
 
-### 1. Create Test Data
-Open Prisma Studio to manage your local database:
-```bash
-yarn db:studio
-```
-(Opens at http://localhost:5555)
+| Interface | URL | Description |
+|-----------|-----|-------------|
+| **Attendee View** | `http://localhost:3000/[event-url]` | The public page where attendees view demos and vote. |
+| **Admin Panel** | `http://localhost:3000/admin/[event-id]` | The dashboard for organizers to manage the event. |
+| **Database Studio** | `http://localhost:5555` | A GUI to view and edit your local database directly. |
 
-**Required Data:**
-1.  **Users**: Create a user and set `isJudge = true` to test judge voting.
-2.  **Event**: Create an event and set `oneVsOneMode = true`.
-3.  **Demos**: Create at least 2 demos (startups) for that event.
-4.  **Award**: Ensure an award exists (or create one named "Match Vote").
+---
 
-### 2. Admin Workflow
-1.  Go to `http://localhost:3000/admin/[eventId]`.
-2.  Navigate to the **Match Mode** tab.
-3.  **Create Match**: Select two startups and a round type.
-4.  **Start Match**: Click "Start" to open voting.
-5.  **Close Voting**: Click "Close" to see the weighted results.
+## 📖 User Guide: 1v1 Match Mode
 
-### 3. Attendee Workflow
-1.  Go to the event page `http://localhost:3000/[eventUrl]`.
-2.  If a match is active, the voting interface will appear automatically.
-3.  Vote for a startup.
-    *   **Regular User**: Counts as Audience vote (50% weight).
-    *   **Judge User**: Counts as Judge vote (50% weight).
+The "Match Mode" allows you to run head-to-head battles between two startups. Here is the complete end-to-end workflow to test it locally.
+
+### Step 1: Initial Setup (Database)
+
+Since we are in a local environment, we need to manually set up the data first using **Prisma Studio**.
+
+1.  **Open Prisma Studio**:
+    ```bash
+    yarn db:studio
+    ```
+2.  **Create an Event**:
+    *   Go to the `Event` table.
+    *   Create a new record.
+    *   **Important**: Set `oneVsOneMode` to `true`.
+    *   Note the `id` (e.g., `evt_123`) and `url` (e.g., `demo-night`).
+3.  **Create Demos (Startups)**:
+    *   Go to the `Demo` table.
+    *   Create at least 2 demos linked to your `eventId`.
+    *   Give them names like "Startup A" and "Startup B".
+4.  **Create a Judge (Optional)**:
+    *   Go to the `User` table.
+    *   Find or create a user.
+    *   Set `isJudge` to `true`.
+    *   *Tip: Use a specific email like `judge@test.com` so you can login with it.*
+5.  **Ensure Award Exists**:
+    *   Go to the `Award` table.
+    *   Make sure there is at least one award for your event. If not, create one named "Match Vote".
+
+### Step 2: The Admin Experience (Running a Match)
+
+1.  Navigate to the Admin Panel: `http://localhost:3000/admin/[your-event-id]`
+2.  Click on the **Match Mode** tab in the sidebar.
+3.  **Create a Match**:
+    *   Select "Startup A" and "Startup B" from the dropdowns.
+    *   Choose a round type (e.g., "Round 1").
+    *   Click **Create Match**.
+4.  **Control the Match**:
+    *   You will see the match card appear.
+    *   Click **Start Match** to open voting.
+    *   *The status will change to "Live" and attendees can now vote.*
+    *   Watch the live vote counts update in real-time.
+    *   Click **Close Voting** to end the match.
+    *   The winner will be displayed with a 🏆 icon.
+
+### Step 3: The Attendee Experience (Voting)
+
+1.  Open a new browser window/tab (Incognito works best to test multiple users).
+2.  Navigate to the Event Page: `http://localhost:3000/[your-event-url]`
+3.  **Active Match**:
+    *   If a match is "Live", a voting overlay or section will automatically appear.
+    *   You will see the two startups facing off.
+4.  **Voting**:
+    *   Click on the startup you want to support.
+    *   You will see a confirmation that your vote was recorded.
+    *   *Note: You can only vote once per match.*
+
+### Step 4: The Judge Experience (Weighted Voting)
+
+1.  Log in as the user you marked as `isJudge = true`.
+2.  Go to the Event Page.
+3.  Vote in an active match.
+4.  **Scoring Logic**:
+    *   Your vote counts as a **Judge Vote**.
+    *   The final score is calculated as: `(50% Audience Score) + (50% Judge Score)`.
+    *   *Example*: If Startup A gets 100% of audience votes but 0% of judge votes, their final score is 50%.
 
 ---
 
