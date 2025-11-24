@@ -17,10 +17,10 @@ export type Partner = z.infer<typeof partnerSchema>;
 
 export const DEFAULT_PARTNERS: Partner[] = [
   {
-    name: "The AI Collective",
-    url: "https://www.aicollective.com",
+    name: "Your Organization",
+    url: "https://example.com",
     description:
-      "We gather pioneers on the frontier of AI to exchange insights, deepen our human connection, and drive collective progress.",
+      "Update this with your organization details in the DEFAULT_PARTNERS array.",
   },
   // {
   //   name: "Product Hunt",
