@@ -15,6 +15,7 @@ import {
   SettingsIcon,
   TrophyIcon,
   UsersIcon,
+  SwordsIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -60,6 +61,7 @@ export enum AdminTab {
   AwardsAndVoting = "awards-and-voting",
   Attendees = "attendees",
   EventFeedback = "event-feedback",
+  MatchMode = "match-mode",
 }
 
 interface AdminSidebarProps {
@@ -316,13 +318,26 @@ export function AdminSidebar({
                           {branding.isPitchNight ? "Awards & Investing" : "Awards & Voting"}
                         </span>
                         {currentPhase === EventPhase.Voting ||
-                        currentPhase === EventPhase.Results ? (
+                          currentPhase === EventPhase.Results ? (
                           <LiveIndicator />
                         ) : null}
                       </div>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 </SidebarMenuSub>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setSelectedTab(AdminTab.MatchMode)}
+                  className={
+                    selectedTab === AdminTab.MatchMode ? "bg-accent" : ""
+                  }
+                >
+                  <div className="flex items-center gap-2">
+                    <SwordsIcon className="h-4 w-4" />
+                    <span>Match Mode</span>
+                  </div>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton

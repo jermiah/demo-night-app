@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
 export const voteRouter = createTRPCRouter({
@@ -18,7 +18,7 @@ export const voteRouter = createTRPCRouter({
       // Group votes by awardId - for demo nights returns single vote, for pitch nights returns array
       return votes;
     }),
-  upsert: publicProcedure
+  upsert: protectedProcedure
     .input(
       z.object({
         eventId: z.string(),
@@ -27,10 +27,19 @@ export const voteRouter = createTRPCRouter({
         demoId: z.string().nullable(),
         amount: z.number().nullable().optional(),
         matchId: z.string().nullable().optional(),
-        voteType: z.enum(["audience", "judge"]).optional(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Validate that the user is voting for themselves
+      if (input.attendeeId !== ctx.session.user.id) {
+        throw new Error("You can only cast votes for yourself");
+      }
+
+      // Determine vote type from session role
+      // @ts-expect-error - role is not strictly typed in session user yet
+      const role = ctx.session.user.role;
+      const voteType = role === "JUDGE" ? "judge" : "audience";
+
       try {
         // Validate investment amount if provided
         if (input.amount !== null && input.amount !== undefined) {
@@ -97,12 +106,12 @@ export const voteRouter = createTRPCRouter({
             demoId: input.demoId,
             amount: input.amount,
             matchId: input.matchId ?? null,
-            voteType: input.voteType ?? "audience",
+            voteType: voteType,
           },
           update: {
             amount: input.amount,
             matchId: input.matchId ?? null,
-            voteType: input.voteType ?? "audience",
+            voteType: voteType,
           },
         });
       } catch (error: any) {

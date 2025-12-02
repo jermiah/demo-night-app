@@ -1,4 +1,5 @@
 import { useDashboardContext } from "../../contexts/DashboardContext";
+import QRCode from "react-qr-code";
 import CsvButton from "../CsvButton";
 import { AnimatePresence, motion } from "framer-motion";
 import { Pencil, Plus, Trash } from "lucide-react";
@@ -145,8 +146,21 @@ export function ConfigurationTab() {
     description: escapeCsvField(action.description),
   }));
 
+  const audienceUrl = typeof window !== "undefined" ? `${window.location.origin}/login/audience?eventId=${event.id}` : "";
+  const judgeUrl = typeof window !== "undefined" ? `${window.location.origin}/login/judge?eventId=${event.id}` : "";
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-end justify-between">
+          <h2 className="text-2xl font-semibold">Voting Access</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <AccessCard title="Audience Access" url={audienceUrl} />
+          <AccessCard title="Judge Access" url={judgeUrl} />
+        </div>
+      </div>
+
       <div className="flex flex-col gap-2">
         <div className="flex items-end justify-between">
           <h2 className="text-2xl font-semibold">Event Survey</h2>
@@ -623,5 +637,37 @@ function QuickActionRow({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+function AccessCard({ title, url }: { title: string; url: string }) {
+  return (
+    <div className="flex flex-col gap-4 rounded-md border p-4">
+      <h3 className="font-semibold">{title}</h3>
+      {url ? (
+        <div className="flex flex-col items-center gap-4">
+          <div className="bg-white p-2">
+            <QRCode value={url} size={128} />
+          </div>
+          <div className="flex w-full gap-2">
+            <input
+              readOnly
+              value={url}
+              className="w-full rounded-md border px-2 py-1 text-xs text-muted-foreground"
+            />
+            <Button size="sm" variant="outline" onClick={() => {
+              navigator.clipboard.writeText(url);
+              toast.success("Copied to clipboard!");
+            }}>
+              Copy
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="h-32 flex items-center justify-center text-muted-foreground">
+          Loading...
+        </div>
+      )}
+    </div>
   );
 }

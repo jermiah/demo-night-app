@@ -3,8 +3,20 @@ import { useEffect, useState } from "react";
 
 import { api } from "~/trpc/react";
 
-export function useAttendee(eventId: string) {
-  const [attendee, setAttendee] = useState<Attendee>(getLocalAttendee());
+export function useAttendee(eventId: string, initialUser?: { id: string; name?: string | null; email?: string | null; role?: string }) {
+  const [attendee, setAttendee] = useState<Attendee>(() => {
+    if (initialUser) {
+      return {
+        id: initialUser.id,
+        name: initialUser.name ?? null,
+        email: initialUser.email ?? null,
+        type: initialUser.role ?? null,
+        linkedin: null,
+      } as Attendee;
+    }
+    return getLocalAttendee();
+  });
+
   const { data: attendeeData } = api.attendee.upsert.useQuery({
     id: attendee.id,
     eventId: eventId,
@@ -23,6 +35,9 @@ export function useAttendee(eventId: string) {
 
   useEffect(() => {
     if (!attendee) return;
+    // Only update if we have meaningful changes or if it's a new user
+    // But be careful not to spam updates.
+    // The original code updated on every change.
     updateMutation.mutate({
       id: attendee.id,
       name: attendee.name,
@@ -40,6 +55,7 @@ function getLocalAttendee(): Attendee {
     const attendee = localStorage.getItem("attendee");
     if (attendee) return JSON.parse(attendee);
   }
+  // Fallback for when no session and no local storage (shouldn't happen with auth)
   const attendee = {
     id: crypto.randomUUID(),
     name: null,

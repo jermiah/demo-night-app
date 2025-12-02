@@ -40,6 +40,7 @@ export function MatchView({ match, onUpdate }: MatchViewProps) {
 
   const votesA = votes?.filter((v) => v.demoId === match.startupAId) ?? [];
   const votesB = votes?.filter((v) => v.demoId === match.startupBId) ?? [];
+  const votesC = votes?.filter((v) => v.demoId === match.startupCId) ?? [];
 
   return (
     <Card>
@@ -79,7 +80,7 @@ export function MatchView({ match, onUpdate }: MatchViewProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-8">
+        <div className={`grid gap-8 ${match.startupC ? "grid-cols-3" : "grid-cols-2"}`}>
           {/* Startup A */}
           <div className="space-y-2">
             <h3 className="text-xl font-bold">{match.startupA.name}</h3>
@@ -141,6 +142,39 @@ export function MatchView({ match, onUpdate }: MatchViewProps) {
               </div>
             )}
           </div>
+
+          {/* Startup C */}
+          {match.startupC && (
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold">{match.startupC.name}</h3>
+              {match.isActive && (
+                <div className="text-2xl font-bold">
+                  {votesC.length} votes
+                  <div className="text-sm text-gray-500">
+                    Audience: {votesC.filter((v) => v.voteType === "audience").length} |
+                    Judges: {votesC.filter((v) => v.voteType === "judge").length}
+                  </div>
+                </div>
+              )}
+              {results && (
+                <div className="space-y-1">
+                  <div className="text-sm">
+                    Total Votes: {results.votesC.total}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Audience: {results.votesC.audience} | Judges:{" "}
+                    {results.votesC.judge}
+                  </div>
+                  <div className="text-2xl font-bold">
+                    Score: {(results.finalScoreC * 100).toFixed(1)}%
+                  </div>
+                  {results.winnerId === match.startupCId && (
+                    <div className="text-lg font-bold text-green-600">🏆 WINNER</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {match.isActive && (

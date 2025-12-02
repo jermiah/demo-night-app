@@ -19,16 +19,20 @@ import RecapWorkspace from "./RecapWorkspace";
 import ResultsWorkspace from "./ResultsWorkspace";
 import VotingWorkspace from "./VotingWorkspace";
 
+import { type Session } from "next-auth";
+
 export default function Workspaces({
   currentEvent: initialCurrentEvent,
+  user,
 }: {
   currentEvent: CurrentEvent;
+  user?: Session["user"];
 }) {
   const { currentEvent, event } = useEventSync(initialCurrentEvent);
   const [config, setConfig] = useState<EventConfig>(
     eventConfigSchema.parse(event?.config ?? {}),
   );
-  const { attendee, setAttendee } = useAttendee(initialCurrentEvent.id);
+  const { attendee, setAttendee } = useAttendee(initialCurrentEvent.id, user);
 
   useEffect(() => {
     if (event) {

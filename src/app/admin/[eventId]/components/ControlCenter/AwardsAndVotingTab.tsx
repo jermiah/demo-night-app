@@ -71,18 +71,58 @@ export default function AwardsAndVotingTab() {
 
   const votesByDemoId = useMemo(() => {
     if (!event || !votes) return new Map();
-    const map = new Map(
-      event.demos
-        .filter((demo) => demo.votable !== false)
-        .map((demo) => [demo.id, 0]),
-    );
+
+    const demoStats = new Map<string, { audience: number; judge: number }>();
+    event.demos.forEach((demo) => {
+      if (demo.votable !== false) {
+        demoStats.set(demo.id, { audience: 0, judge: 0 });
+      }
+    });
+
+    let totalAudience = 0;
+    let totalJudge = 0;
+
     votes?.forEach((vote) => {
       if (!vote.demoId) return;
-      // For pitch nights, sum investment amounts; for demo nights, count votes
+      const stats = demoStats.get(vote.demoId);
+      if (!stats) return;
+
       const value = isPitchNight && vote.amount ? vote.amount : 1;
-      map.set(vote.demoId, (map.get(vote.demoId) ?? 0) + value);
+      // @ts-expect-error - voteType might not be in the type definition yet if not regenerated
+      const type = vote.voteType === "judge" ? "judge" : "audience";
+
+      stats[type] += value;
+
+      if (type === "judge") totalJudge += value;
+      else totalAudience += value;
     });
-    return map;
+
+    const scoreMap = new Map<string, number>();
+    demoStats.forEach((stats, demoId) => {
+      // Avoid division by zero
+      const audienceScore = totalAudience > 0 ? stats.audience / totalAudience : 0;
+      const judgeScore = totalJudge > 0 ? stats.judge / totalJudge : 0;
+
+      // 50/50 weighting
+      // If only one group exists (e.g. no judges yet), we normalize to 100% of that group?
+      // Or strictly 50%?
+      // Requirement: "50% judges and 50% audience"
+      // If no judges, max score is 50. This encourages having judges.
+      // But if it's purely audience event, this might be weird.
+      // However, the requirement is specific about Audience AND Judges.
+
+      let finalScore = 0;
+      if (totalJudge === 0 && totalAudience > 0) {
+        finalScore = audienceScore * 100; // Fallback to 100% audience if no judges
+      } else if (totalAudience === 0 && totalJudge > 0) {
+        finalScore = judgeScore * 100; // Fallback to 100% judge if no audience
+      } else if (totalAudience > 0 && totalJudge > 0) {
+        finalScore = (audienceScore * 0.5 + judgeScore * 0.5) * 100;
+      }
+
+      scoreMap.set(demoId, finalScore);
+    });
+    return scoreMap;
   }, [event, votes, isPitchNight]);
 
   if (!event) return null;
@@ -206,9 +246,9 @@ export default function AwardsAndVotingTab() {
             <div className="flex w-full items-center justify-between gap-2">
               <h2 className="line-clamp-1 text-2xl font-semibold">
                 {selectedAward?.name
-                  ? `${isPitchNight ? "Investments" : "Votes"} for ${selectedAward.name}`
-                  : isPitchNight ? "Investments" : "Votes"}
-                <span> ({votes?.length ?? 0} total)</span>
+                  ? `Scores for ${selectedAward.name}`
+                  : "Scores"}
+                <span> ({votes?.length ?? 0} votes)</span>
               </h2>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -230,7 +270,7 @@ export default function AwardsAndVotingTab() {
             <Table>
               <TableHeader className="sticky top-0">
                 <TableRow>
-                  <TableHead className="w-[50px] text-right">#</TableHead>
+                  <TableHead className="w-[80px] text-right">Score</TableHead>
                   <TableHead>Demo</TableHead>
                 </TableRow>
               </TableHeader>
@@ -238,7 +278,7 @@ export default function AwardsAndVotingTab() {
                 <AnimatePresence mode="popLayout">
                   {Array.from(votesByDemoId.entries())
                     .sort((a, b) => b[1] - a[1])
-                    .map(([demoId, voteCount]) => (
+                    .map(([demoId, score]) => (
                       <motion.tr
                         key={demoId}
                         layout
@@ -253,7 +293,7 @@ export default function AwardsAndVotingTab() {
                         onClick={() => handleSelectWinner(demoId)}
                       >
                         <TableCell className="text-right font-medium">
-                          {isPitchNight ? `$${(voteCount / 1000).toFixed(0)}k` : voteCount}
+                          {score.toFixed(1)}%
                         </TableCell>
                         <TableCell className="flex items-center justify-start gap-2 font-medium">
                           {selectedAward?.winnerId === demoId && (
@@ -262,7 +302,7 @@ export default function AwardsAndVotingTab() {
                           <span
                             className={cn(
                               selectedAward?.winnerId === demoId &&
-                                "font-semibold",
+                              "font-semibold",
                             )}
                           >
                             {
@@ -337,7 +377,7 @@ function RevealButton({ state, onClick }: RevealButtonProps) {
           className={cn(
             "size-8",
             state === RevealButtonAction.Reveal &&
-              "animate-pulse-border border-2",
+            "animate-pulse-border border-2",
           )}
           onClick={(e) => {
             e.stopPropagation();

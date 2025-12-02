@@ -13,6 +13,7 @@ export const matchRouter = createTRPCRouter({
         include: {
           startupA: true,
           startupB: true,
+          startupC: true,
           votes: {
             include: {
               attendee: true,
@@ -32,6 +33,7 @@ export const matchRouter = createTRPCRouter({
         include: {
           startupA: true,
           startupB: true,
+          startupC: true,
           votes: {
             include: {
               attendee: true,
@@ -48,6 +50,7 @@ export const matchRouter = createTRPCRouter({
         eventId: z.string(),
         startupAId: z.string(),
         startupBId: z.string(),
+        startupCId: z.string().optional(),
         roundType: z.string().optional(),
         votingWindow: z.number().optional(),
       }),
@@ -58,12 +61,14 @@ export const matchRouter = createTRPCRouter({
           eventId: input.eventId,
           startupAId: input.startupAId,
           startupBId: input.startupBId,
+          startupCId: input.startupCId,
           roundType: input.roundType,
           votingWindow: input.votingWindow,
         },
         include: {
           startupA: true,
           startupB: true,
+          startupC: true,
         },
       });
     }),
@@ -95,6 +100,7 @@ export const matchRouter = createTRPCRouter({
           },
           startupA: true,
           startupB: true,
+          startupC: true,
         },
       });
 
@@ -127,6 +133,7 @@ export const matchRouter = createTRPCRouter({
           },
           startupA: true,
           startupB: true,
+          startupC: true,
         },
       });
 
@@ -153,47 +160,62 @@ function computeMatchWinner(match: any) {
   const votesB = match.votes.filter(
     (v: any) => v.demoId === match.startupBId,
   );
+  const votesC = match.startupCId
+    ? match.votes.filter((v: any) => v.demoId === match.startupCId)
+    : [];
 
   // Separate audience and judge votes
   const audienceVotesA = votesA.filter((v: any) => v.voteType === "audience");
   const audienceVotesB = votesB.filter((v: any) => v.voteType === "audience");
+  const audienceVotesC = votesC.filter((v: any) => v.voteType === "audience");
+
   const judgeVotesA = votesA.filter((v: any) => v.voteType === "judge");
   const judgeVotesB = votesB.filter((v: any) => v.voteType === "judge");
+  const judgeVotesC = votesC.filter((v: any) => v.voteType === "judge");
 
-  const totalAudienceVotes = audienceVotesA.length + audienceVotesB.length;
-  const totalJudgeVotes = judgeVotesA.length + judgeVotesB.length;
+  const totalAudienceVotes =
+    audienceVotesA.length + audienceVotesB.length + audienceVotesC.length;
+  const totalJudgeVotes =
+    judgeVotesA.length + judgeVotesB.length + judgeVotesC.length;
 
   let finalScoreA = 0;
   let finalScoreB = 0;
+  let finalScoreC = 0;
 
   // Calculate weighted scores (50% audience, 50% judge)
   if (totalAudienceVotes > 0) {
     finalScoreA += (audienceVotesA.length / totalAudienceVotes) * 0.5;
     finalScoreB += (audienceVotesB.length / totalAudienceVotes) * 0.5;
+    finalScoreC += (audienceVotesC.length / totalAudienceVotes) * 0.5;
   }
 
   if (totalJudgeVotes > 0) {
     finalScoreA += (judgeVotesA.length / totalJudgeVotes) * 0.5;
     finalScoreB += (judgeVotesB.length / totalJudgeVotes) * 0.5;
+    finalScoreC += (judgeVotesC.length / totalJudgeVotes) * 0.5;
   }
 
   // If no judges, give full weight to audience
   if (totalJudgeVotes === 0 && totalAudienceVotes > 0) {
     finalScoreA = audienceVotesA.length / totalAudienceVotes;
     finalScoreB = audienceVotesB.length / totalAudienceVotes;
+    finalScoreC = audienceVotesC.length / totalAudienceVotes;
   }
 
-  const winnerId =
-    finalScoreA > finalScoreB
-      ? match.startupAId
-      : finalScoreB > finalScoreA
-        ? match.startupBId
-        : null;
+  let winnerId = null;
+  if (finalScoreA > finalScoreB && finalScoreA > finalScoreC) {
+    winnerId = match.startupAId;
+  } else if (finalScoreB > finalScoreA && finalScoreB > finalScoreC) {
+    winnerId = match.startupBId;
+  } else if (finalScoreC > finalScoreA && finalScoreC > finalScoreB) {
+    winnerId = match.startupCId;
+  }
 
   return {
     matchId: match.id,
     startupA: match.startupA,
     startupB: match.startupB,
+    startupC: match.startupC,
     votesA: {
       total: votesA.length,
       audience: audienceVotesA.length,
@@ -204,14 +226,22 @@ function computeMatchWinner(match: any) {
       audience: audienceVotesB.length,
       judge: judgeVotesB.length,
     },
+    votesC: {
+      total: votesC.length,
+      audience: audienceVotesC.length,
+      judge: judgeVotesC.length,
+    },
     finalScoreA,
     finalScoreB,
+    finalScoreC,
     winnerId,
     winner:
       winnerId === match.startupAId
         ? match.startupA
         : winnerId === match.startupBId
           ? match.startupB
-          : null,
+          : winnerId === match.startupCId
+            ? match.startupC
+            : null,
   };
 }

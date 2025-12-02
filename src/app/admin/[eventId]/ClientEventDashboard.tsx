@@ -16,6 +16,7 @@ import ControlCenterTab from "./components/ControlCenter/ControlCenterTab";
 import { DemosTab } from "./components/Demos/DemosTab";
 import EventFeedbackTab from "./components/EventFeedback/EventFeedbackTab";
 import SubmissionsTab from "./components/Submissions/SubmissionsTab";
+import { MatchModeTab } from "./components/MatchMode/MatchModeTab";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 
 import { type AdminEvent, DashboardContext } from "./contexts/DashboardContext";
@@ -48,6 +49,7 @@ export function ClientEventDashboard({
   }, [event]);
 
   function dashboard() {
+    if (!event) return null;
     switch (selectedTab) {
       case AdminTab.Submissions:
         return <SubmissionsTab />;
@@ -69,6 +71,8 @@ export function ClientEventDashboard({
         return <AttendeesTab />;
       case AdminTab.EventFeedback:
         return <EventFeedbackTab />;
+      case AdminTab.MatchMode:
+        return <MatchModeTab eventId={event.id} />;
     }
   }
 

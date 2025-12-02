@@ -23,12 +23,20 @@ export async function generateMetadata() {
   };
 }
 
+import { getServerAuthSession } from "~/server/auth";
+import { redirect } from "next/navigation";
+
 export default async function AttendeePage() {
+  const session = await getServerAuthSession();
+  if (!session) {
+    redirect("/login/audience");
+  }
+
   const currentEvent = await api.event.getCurrent();
   if (!currentEvent) return <HallOfFamePage />;
   return (
     <main className="m-auto flex size-full max-w-xl flex-col text-black">
-      <Workspaces currentEvent={currentEvent} />
+      <Workspaces currentEvent={currentEvent} user={session.user} />
     </main>
   );
 }

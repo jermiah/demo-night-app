@@ -1,0 +1,34 @@
+Checking for event: sf-demo
+Total demos in DB: 4
+All Demos:
+[
+  {
+    "id": "demo-1",
+    "name": "AI Chatbot Pro",
+    "eventId": "sf-demo",
+    "index": 1,
+    "votable": true
+  },
+  {
+    "id": "demo-2",
+    "name": "CloudSync",
+    "eventId": "sf-demo",
+    "index": 2,
+    "votable": true
+  },
+  {
+    "id": "demo-3",
+    "name": "DataViz Pro",
+    "eventId": "sf-demo",
+    "index": 3,
+    "votable": true
+  },
+  {
+    "id": "demo-4",
+    "name": "SecureAuth",
+    "eventId": "sf-demo",
+    "index": 4,
+    "votable": true
+  }
+]
+Found 0 matches for event sf-demo

@@ -20,65 +20,79 @@ async function main() {
 
   console.log('✅ Event created:', event.name);
 
-  // Create some demo startups
-  const demos = await Promise.all([
-    prisma.demo.upsert({
-      where: { id: 'demo-1' },
-      update: {},
-      create: {
-        id: 'demo-1',
+  // Delete existing demos to ensure clean state
+  await prisma.demo.deleteMany({
+    where: { eventId: 'sf-demo' },
+  });
+  console.log('🗑️ Deleted existing demos');
+
+  // Create some demo startups sequentially to avoid potential locking issues
+  const demosData = [
+    {
+      id: 'demo-1',
+      index: 1,
+      name: 'AI Chatbot Pro',
+      description: 'Advanced AI-powered customer service chatbot',
+      email: 'demo1@example.com',
+      url: 'https://example.com/demo1',
+    },
+    {
+      id: 'demo-2',
+      index: 2,
+      name: 'CloudSync',
+      description: 'Real-time cloud synchronization platform',
+      email: 'demo2@example.com',
+      url: 'https://example.com/demo2',
+    },
+    {
+      id: 'demo-3',
+      index: 3,
+      name: 'DataViz Pro',
+      description: 'Beautiful data visualization tool',
+      email: 'demo3@example.com',
+      url: 'https://example.com/demo3',
+    },
+    {
+      id: 'demo-4',
+      index: 4,
+      name: 'SecureAuth',
+      description: 'Next-gen authentication system',
+      email: 'demo4@example.com',
+      url: 'https://example.com/demo4',
+    },
+  ];
+
+  const demos = [];
+  for (const demo of demosData) {
+    const result = await prisma.demo.upsert({
+      where: { id: demo.id },
+      update: {
+        // Update fields if it exists, to ensure data is correct
         eventId: 'sf-demo',
-        index: 1,
-        name: 'AI Chatbot Pro',
-        description: 'Advanced AI-powered customer service chatbot',
-        email: 'demo1@example.com',
-        url: 'https://example.com/demo1',
+        index: demo.index,
+        name: demo.name,
+        description: demo.description,
+        email: demo.email,
+        url: demo.url,
         votable: true,
       },
-    }),
-    prisma.demo.upsert({
-      where: { id: 'demo-2' },
-      update: {},
       create: {
-        id: 'demo-2',
+        id: demo.id,
         eventId: 'sf-demo',
-        index: 2,
-        name: 'CloudSync',
-        description: 'Real-time cloud synchronization platform',
-        email: 'demo2@example.com',
-        url: 'https://example.com/demo2',
+        index: demo.index,
+        name: demo.name,
+        description: demo.description,
+        email: demo.email,
+        url: demo.url,
         votable: true,
       },
-    }),
-    prisma.demo.upsert({
-      where: { id: 'demo-3' },
-      update: {},
-      create: {
-        id: 'demo-3',
-        eventId: 'sf-demo',
-        index: 3,
-        name: 'DataViz Pro',
-        description: 'Beautiful data visualization tool',
-        email: 'demo3@example.com',
-        url: 'https://example.com/demo3',
-        votable: true,
-      },
-    }),
-    prisma.demo.upsert({
-      where: { id: 'demo-4' },
-      update: {},
-      create: {
-        id: 'demo-4',
-        eventId: 'sf-demo',
-        index: 4,
-        name: 'SecureAuth',
-        description: 'Next-gen authentication system',
-        email: 'demo4@example.com',
-        url: 'https://example.com/demo4',
-        votable: true,
-      },
-    }),
-  ]);
+    });
+    demos.push(result);
+    console.log(`✅ Created/Updated demo: ${demo.name}`);
+
+    const count = await prisma.demo.count({ where: { eventId: 'sf-demo' } });
+    console.log(`   Current demo count: ${count}`);
+  }
 
   console.log(`✅ Created ${demos.length} demo startups`);
 

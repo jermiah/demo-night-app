@@ -106,11 +106,10 @@ export function MatchVoting({
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Startup A */}
             <Card
-              className={`cursor-pointer transition-all ${
-                selectedDemo === activeMatch.startupAId
+              className={`cursor-pointer transition-all ${selectedDemo === activeMatch.startupAId
                   ? "ring-4 ring-blue-500"
                   : "hover:shadow-lg"
-              }`}
+                }`}
               onClick={() => handleVote(activeMatch.startupAId)}
             >
               <CardHeader>
@@ -145,11 +144,10 @@ export function MatchVoting({
 
             {/* Startup B */}
             <Card
-              className={`cursor-pointer transition-all ${
-                selectedDemo === activeMatch.startupBId
+              className={`cursor-pointer transition-all ${selectedDemo === activeMatch.startupBId
                   ? "ring-4 ring-blue-500"
                   : "hover:shadow-lg"
-              }`}
+                }`}
               onClick={() => handleVote(activeMatch.startupBId)}
             >
               <CardHeader>
@@ -181,6 +179,46 @@ export function MatchVoting({
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Startup C (Optional) */}
+            {activeMatch.startupC && (
+              <Card
+                className={`cursor-pointer transition-all ${selectedDemo === activeMatch.startupCId
+                    ? "ring-4 ring-blue-500"
+                    : "hover:shadow-lg"
+                  }`}
+                onClick={() => activeMatch.startupCId && handleVote(activeMatch.startupCId)}
+              >
+                <CardHeader>
+                  <CardTitle className="text-center">
+                    {activeMatch.startupC.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {activeMatch.startupC.description && (
+                    <p className="text-sm text-gray-600">
+                      {activeMatch.startupC.description}
+                    </p>
+                  )}
+                  <Button
+                    className="mt-4 w-full"
+                    variant={
+                      selectedDemo === activeMatch.startupCId
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (activeMatch.startupCId) handleVote(activeMatch.startupCId);
+                    }}
+                  >
+                    {selectedDemo === activeMatch.startupCId
+                      ? "✓ Voted"
+                      : "Vote"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {selectedDemo && (

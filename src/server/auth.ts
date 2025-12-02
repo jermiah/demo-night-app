@@ -45,6 +45,75 @@ export const authOptions: NextAuthOptions = {
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
     CredentialsProvider({
+      id: "voter-auth",
+      name: "Voter Login",
+      credentials: {
+        name: { label: "Name", type: "text" },
+        email: { label: "Email", type: "email" },
+        role: { label: "Role", type: "text" }, // "AUDIENCE" or "JUDGE"
+        eventId: { label: "Event ID", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.name || !credentials?.role || !credentials?.eventId) {
+          throw new Error("Missing credentials");
+        }
+
+        const { email, name, role, eventId } = credentials;
+
+        // Check if attendee exists
+        let attendee = await db.attendee.findFirst({
+          where: {
+            email,
+            events: { some: { id: eventId } }
+          },
+        });
+
+        if (attendee) {
+          // If attendee exists, check if role matches
+          if (attendee.type && attendee.type !== role) {
+            throw new Error(`You are already registered as ${attendee.type}. Cannot switch to ${role}.`);
+          }
+
+          // Update name if missing or changed (optional, but good for consistency)
+          if (attendee.name !== name || !attendee.type) {
+            attendee = await db.attendee.update({
+              where: { id: attendee.id },
+              data: { name, type: role }
+            });
+          }
+        } else {
+          // Create new attendee
+          attendee = await db.attendee.create({
+            data: {
+              email,
+              name,
+              type: role,
+              events: { connect: { id: eventId } }
+            }
+          });
+        }
+
+        // Return a user object that NextAuth can use. 
+        // We are hijacking the User model logic a bit here, or we can use a separate session strategy.
+        // Since we want to use the same session mechanism, we'll return an object that looks like a user.
+        // However, NextAuth with Prisma adapter usually expects a User record in the 'User' table.
+        // BUT, for voters, we might not want to clutter the 'User' table which seems to be for Admins?
+        // Let's check the schema again. 'User' has 'isJudge'. 
+        // Actually, the requirement says "Audience and Judges". 
+        // The 'Attendee' model seems to be the right place for these temporary users.
+        // If we use 'jwt' strategy, we don't strictly need a 'User' database record if we don't want to link accounts.
+        // But the config uses 'adapter: PrismaAdapter(db)', which implies database sessions usually.
+        // However, session strategy is set to "jwt".
+
+        return {
+          id: attendee.id,
+          name: attendee.name,
+          email: attendee.email,
+          role: attendee.type,
+        };
+      },
+    }),
+    CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -66,12 +135,25 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
-    session: ({ session, user }) => ({
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+        // @ts-expect-error - user.role is not typed yet
+        token.role = user.role;
+      }
+      return token;
+    },
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        id: token.id as string,
+        // @ts-expect-error - token.role is not typed yet
+        role: token.role as string,
       },
     }),
   },

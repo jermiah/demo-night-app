@@ -130,6 +130,7 @@ model Demo {
   awards     Award[]
   matchesAsA Match[]    @relation("MatchStartupA")
   matchesAsB Match[]    @relation("MatchStartupB")
+  matchesAsC Match[]    @relation("MatchStartupC")
 
   @@index([eventId])
 }
@@ -218,6 +219,8 @@ model Match {
   startupAId   String
   startupB     Demo      @relation("MatchStartupB", fields: [startupBId], references: [id], onDelete: Cascade)
   startupBId   String
+  startupC     Demo?     @relation("MatchStartupC", fields: [startupCId], references: [id], onDelete: Cascade)
+  startupCId   String?
   roundType    String?
   startTime    DateTime?
   endTime      DateTime?

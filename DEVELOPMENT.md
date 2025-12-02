@@ -51,6 +51,18 @@ Generate the Prisma client:
 yarn prisma generate
 ```
 
+(Optional) Populate the database with test data:
+
+```bash
+yarn db:seed
+```
+
+Create an event in the database (or view seeded data):
+
+```bash
+yarn db:studio
+```
+
 ### 4. Start the App
 
 ```bash
@@ -67,6 +79,7 @@ Once the server is running (`yarn dev`), you can access the different parts of t
 
 | Interface | URL | Description |
 |-----------|-----|-------------|
+| **Login Page** | `http://localhost:3000/api/auth/signin` | The default sign-in page for authentication (use `test@example.com` for dev). |
 | **Attendee View** | `http://localhost:3000/[event-url]` | The public page where attendees view demos and vote. |
 | **Admin Panel** | `http://localhost:3000/admin/[event-id]` | The dashboard for organizers to manage the event. |
 | **Database Studio** | `http://localhost:5555` | A GUI to view and edit your local database directly. |
@@ -105,7 +118,10 @@ Since we are in a local environment, we need to manually set up the data first u
 
 ### Step 2: The Admin Experience (Running a Match)
 
-1.  Navigate to the Admin Panel: `http://localhost:3000/admin/[your-event-id]`
+1.  **Log In**:
+    *   Go to `http://localhost:3000/api/auth/signin`.
+    *   Sign in with `test@example.com` (or the user you created).
+2.  Navigate to the Admin Panel: `http://localhost:3000/admin/[your-event-id]`
 2.  Click on the **Match Mode** tab in the sidebar.
 3.  **Create a Match**:
     *   Select "Startup A" and "Startup B" from the dropdowns.
