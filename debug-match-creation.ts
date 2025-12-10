@@ -6,8 +6,9 @@ async function main() {
 
     try {
         // 1. Get Event
+        // Use the event id since Event has no slug field
         const event = await db.event.findFirst({
-            where: { slug: "sf-demo" },
+            where: { id: "sf-demo" },
             include: { demos: true }
         });
 
@@ -22,9 +23,12 @@ async function main() {
             return;
         }
 
-        const startupA = event.demos[0];
-        const startupB = event.demos[1];
-        const startupC = event.demos[2]; // Might be undefined
+        const [startupA, startupB, startupC] = event.demos;
+
+        if (!startupA || !startupB) {
+            console.error("Not enough demos to create a match.");
+            return;
+        }
 
         console.log(`Startup A: ${startupA.name} (${startupA.id})`);
         console.log(`Startup B: ${startupB.name} (${startupB.id})`);

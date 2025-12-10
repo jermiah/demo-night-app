@@ -33,7 +33,7 @@ export function MatchModeTab({ eventId }: MatchModeTabProps) {
     ?.filter((m) => m.winnerId)
     .map((m) => m.winnerId);
 
-  const filteredDemos = demos?.filter((demo) => {
+  const filteredDemos = demos?.filter((_demo) => {
     if (roundType === "Round 1") return true;
     // For subsequent rounds, only show winners or allow all if manually selected?
     // User asked for "automatically goes", so let's prioritize winners but maybe keep all for flexibility?

@@ -25,7 +25,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Docker compose services were successfully created!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Services running:" -ForegroundColor Cyan
-    Write-Host "  - PostgreSQL: localhost:5432" -ForegroundColor White
+    Write-Host "  - PostgreSQL: localhost:5433" -ForegroundColor White
     Write-Host "  - Redis: localhost:6379" -ForegroundColor White
     Write-Host "  - Redis HTTP: localhost:8079" -ForegroundColor White
 } else {

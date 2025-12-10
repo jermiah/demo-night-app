@@ -9,7 +9,7 @@ const REFRESH_INTERVAL =
   env.NEXT_PUBLIC_NODE_ENV === "development" ? 1_000 : 5_000;
 
 export default function useEventSync(initialCurrentEvent: CurrentEvent) {
-  const { data: currentEvent } = api.event.getCurrent.useQuery<CurrentEvent>(
+  const { data: currentEvent } = api.event.getCurrent.useQuery<CurrentEvent | null>(
     undefined,
     {
       initialData: initialCurrentEvent,
@@ -17,16 +17,28 @@ export default function useEventSync(initialCurrentEvent: CurrentEvent) {
     },
   );
 
+  // Use initialCurrentEvent as fallback if currentEvent is null/undefined
+  // This ensures we always have a valid CurrentEvent even during hydration
+  const effectiveCurrentEvent: CurrentEvent = (currentEvent ?? initialCurrentEvent)!;
+
   const { data: event, refetch: refetchEvent } = api.event.get.useQuery(
-    currentEvent?.id ?? "",
+    effectiveCurrentEvent?.id ?? "",
     {
-      enabled: !!currentEvent,
+      enabled: !!effectiveCurrentEvent?.id,
+      refetchOnMount: true, // Always refetch when component mounts
+      refetchOnWindowFocus: true, // Refetch when window regains focus
     },
   );
 
-  useEffect(() => {
-    refetchEvent();
-  }, [currentEvent.phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Extract phase safely - will be undefined if effectiveCurrentEvent is null (shouldn't happen)
+  const phase = effectiveCurrentEvent?.phase;
 
-  return { currentEvent, event: event!, refetchEvent };
+  useEffect(() => {
+    // Only refetch if we have both phase and eventId
+    if (phase && effectiveCurrentEvent?.id) {
+      refetchEvent();
+    }
+  }, [phase, effectiveCurrentEvent?.id, refetchEvent]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { currentEvent: effectiveCurrentEvent, event: event!, refetchEvent };
 }

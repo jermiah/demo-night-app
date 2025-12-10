@@ -32,13 +32,21 @@ export default function Workspaces({
   const [config, setConfig] = useState<EventConfig>(
     eventConfigSchema.parse(event?.config ?? {}),
   );
-  const { attendee, setAttendee } = useAttendee(initialCurrentEvent.id, user);
+  const { attendee, setAttendee } = useAttendee(
+    currentEvent?.id ?? initialCurrentEvent.id,
+    user,
+  );
 
   useEffect(() => {
     if (event) {
       setConfig(eventConfigSchema.parse(event.config));
     }
   }, [event]);
+
+  // Show loading if currentEvent is not yet available
+  if (!currentEvent) {
+    return <LoadingScreen />;
+  }
 
   function workspace() {
     switch (currentEvent?.phase) {
@@ -48,6 +56,11 @@ export default function Workspaces({
         if (!event || !event.demos.length) return <LoadingScreen />;
         return <DemosWorkspace />;
       case EventPhase.Voting:
+        console.log("[Workspaces] Voting phase - event:", {
+          hasEvent: !!event,
+          eventId: event?.id,
+          oneVsOneMode: event?.oneVsOneMode,
+        });
         if (!event) return <LoadingScreen />;
         return <VotingWorkspace />;
       case EventPhase.Results:

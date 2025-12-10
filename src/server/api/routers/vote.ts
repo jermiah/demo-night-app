@@ -35,9 +35,8 @@ export const voteRouter = createTRPCRouter({
         throw new Error("You can only cast votes for yourself");
       }
 
-      // Determine vote type from session role
-      // @ts-expect-error - role is not strictly typed in session user yet
-      const role = ctx.session.user.role;
+      // Determine vote type from session role (session user role not strictly typed yet)
+      const role = (ctx.session.user as any).role;
       const voteType = role === "JUDGE" ? "judge" : "audience";
 
       try {

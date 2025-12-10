@@ -177,6 +177,7 @@ export default function AdminHomePage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         // Pass only the Event properties, excluding _count
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const { _count, ...eventData } = event;
                         showUpsertEventModal(eventData as Event);
                       }}

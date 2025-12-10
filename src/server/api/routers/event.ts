@@ -505,6 +505,7 @@ const completeEventSelect: Prisma.EventSelect = {
   date: true,
   url: true,
   config: true,
+  oneVsOneMode: true,
   demos: {
     orderBy: { index: "asc" },
     select: {

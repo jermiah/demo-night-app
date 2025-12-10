@@ -40,10 +40,14 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
-    GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-    }),
+    ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     CredentialsProvider({
       id: "voter-auth",
       name: "Voter Login",
@@ -142,8 +146,7 @@ export const authOptions: NextAuthOptions = {
     jwt: ({ token, user }) => {
       if (user) {
         token.id = user.id;
-        // @ts-expect-error - user.role is not typed yet
-        token.role = user.role;
+        token.role = (user as any).role;
       }
       return token;
     },
@@ -152,8 +155,7 @@ export const authOptions: NextAuthOptions = {
       user: {
         ...session.user,
         id: token.id as string,
-        // @ts-expect-error - token.role is not typed yet
-        role: token.role as string,
+        role: (token as any).role as string,
       },
     }),
   },

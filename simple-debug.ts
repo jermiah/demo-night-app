@@ -18,23 +18,25 @@ async function main() {
         }
         console.log(`Found event: ${event.name}`);
 
-        if (event.demos.length < 3) {
-            console.error("Not enough demos.");
+        const [startupA, startupB, startupC] = event.demos;
+
+        if (!startupA || !startupB) {
+            console.error("Not enough demos to create a match.");
             return;
         }
 
-        const startupA = event.demos[0];
-        const startupB = event.demos[1];
-        const startupC = event.demos[2];
-
-        console.log(`Creating match with: ${startupA.name}, ${startupB.name}, ${startupC.name}`);
+        console.log(
+            `Creating match with: ${startupA.name}, ${startupB.name}${
+                startupC ? `, ${startupC.name}` : ""
+            }`,
+        );
 
         const match = await prisma.match.create({
             data: {
                 eventId: event.id,
                 startupAId: startupA.id,
                 startupBId: startupB.id,
-                startupCId: startupC.id,
+                startupCId: startupC?.id ?? null,
                 roundType: "Final",
                 votingWindow: 300,
             }

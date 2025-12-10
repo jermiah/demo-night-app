@@ -14,9 +14,25 @@ This guide covers how to set up the Demo Night App locally, run the development 
 
 Copy the example environment file:
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 *Note: The default values in `.env.example` work out-of-the-box with the local Docker setup.*
+
+**⚠️ Important**: Generate a `NEXTAUTH_SECRET` for authentication:
+```bash
+# Generate a secret (works on Linux/Mac/WSL)
+openssl rand -base64 32
+
+# Or on Windows PowerShell:
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+
+Add the generated secret to your `.env.local` file:
+```
+NEXTAUTH_SECRET="your-generated-secret-here"
+```
+
+**Without this secret, login will fail with a 500 error!**
 
 ### 2. Start Database & Redis
 
@@ -33,8 +49,8 @@ bash start-database.sh
 ```
 
 This starts:
-- PostgreSQL (Port 5432)
-- Redis (Port 6379)
+- PostgreSQL (Port 5433)
+- Redis (Port 6380)
 - Redis HTTP Proxy (Port 8079)
 
 ### 3. Setup Database Schema
@@ -43,6 +59,16 @@ Run the migrations to create tables:
 
 ```bash
 yarn db:migrate
+```
+
+**⚠️ Windows Users**: 
+- **✅ Recommended**: Use WSL2 - Prisma commands work perfectly! See [Migration Troubleshooting Guide](./MIGRATION_TROUBLESHOOTING.md).
+- **If using Windows Native**: If `yarn db:migrate` fails with authentication errors, use `.\apply-migrations-via-docker.ps1`
+
+**⚠️ WSL Users**: If you get esbuild platform errors, reinstall dependencies in WSL:
+```bash
+rm -rf node_modules
+yarn install
 ```
 
 Generate the Prisma client:
@@ -56,6 +82,8 @@ yarn prisma generate
 ```bash
 yarn db:seed
 ```
+
+**⚠️ WSL Users**: If `yarn db:seed` fails with esbuild platform errors, ensure you've reinstalled `node_modules` in WSL (see above).
 
 Create an event in the database (or view seeded data):
 

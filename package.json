@@ -1,19 +1,23 @@
 {
   "private": true,
   "type": "module",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
-    "env:dev": "dotenv -e .env.development.local",
+    "env:dev": "dotenv -e .env.local",
     "db:migrate": "yarn env:dev prisma format && yarn env:dev prisma generate && yarn env:dev prisma migrate dev",
     "db:migrate:create": "yarn env:dev prisma format && yarn env:dev prisma generate && yarn env:dev prisma migrate dev --create-only",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:push": "yarn env:dev prisma db push",
     "db:seed": "yarn env:dev prisma db seed",
     "db:studio": "yarn env:dev prisma studio",
+    "create-test-voters": "yarn env:dev tsx create-test-voters.ts",
+    "verify-onevsone-mode": "yarn env:dev tsx verify-onevsone-mode.ts",
+    "enable-match-mode": "yarn env:dev tsx verify-onevsone-mode.ts --enable",
     "db:studio:prod": "prisma studio",
     "build": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
-    "start:dev": "next start --env-file .env.development.local",
+    "start:dev": "next start --env-file .env.local",
     "lint": "next lint"
   },
   "prisma": {

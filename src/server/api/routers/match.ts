@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
@@ -56,6 +57,36 @@ export const matchRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
+      // Automatically enable oneVsOneMode when a match is created
+      await db.event.update({
+        where: { id: input.eventId },
+        data: { oneVsOneMode: true },
+      });
+
+      // Ensure a "Match Vote" award exists for this event
+      // This award is used exclusively for match voting (not shown in regular voting)
+      const existingMatchAward = await db.award.findFirst({
+        where: {
+          eventId: input.eventId,
+          name: "Match Vote",
+        },
+      });
+
+      if (!existingMatchAward) {
+        const awardCount = await db.award.count({
+          where: { eventId: input.eventId },
+        });
+        await db.award.create({
+          data: {
+            eventId: input.eventId,
+            index: awardCount,
+            name: "Match Vote",
+            description: "Vote for your favorite startup in this matchup",
+            votable: false, // Hidden from regular voting interface
+          },
+        });
+      }
+
       return db.match.create({
         data: {
           eventId: input.eventId,
@@ -153,25 +184,38 @@ export const matchRouter = createTRPCRouter({
 });
 
 // Helper function to compute match winner with weighted voting
-function computeMatchWinner(match: any) {
+type MatchWithVotes = Prisma.MatchGetPayload<{
+  include: {
+    votes: {
+      include: {
+        attendee: true;
+      };
+    };
+    startupA: true;
+    startupB: true;
+    startupC: true;
+  };
+}>;
+
+function computeMatchWinner(match: MatchWithVotes) {
   const votesA = match.votes.filter(
-    (v: any) => v.demoId === match.startupAId,
+    (v) => v.demoId === match.startupAId,
   );
   const votesB = match.votes.filter(
-    (v: any) => v.demoId === match.startupBId,
+    (v) => v.demoId === match.startupBId,
   );
   const votesC = match.startupCId
-    ? match.votes.filter((v: any) => v.demoId === match.startupCId)
+    ? match.votes.filter((v) => v.demoId === match.startupCId)
     : [];
 
   // Separate audience and judge votes
-  const audienceVotesA = votesA.filter((v: any) => v.voteType === "audience");
-  const audienceVotesB = votesB.filter((v: any) => v.voteType === "audience");
-  const audienceVotesC = votesC.filter((v: any) => v.voteType === "audience");
+  const audienceVotesA = votesA.filter((v) => v.voteType === "audience");
+  const audienceVotesB = votesB.filter((v) => v.voteType === "audience");
+  const audienceVotesC = votesC.filter((v) => v.voteType === "audience");
 
-  const judgeVotesA = votesA.filter((v: any) => v.voteType === "judge");
-  const judgeVotesB = votesB.filter((v: any) => v.voteType === "judge");
-  const judgeVotesC = votesC.filter((v: any) => v.voteType === "judge");
+  const judgeVotesA = votesA.filter((v) => v.voteType === "judge");
+  const judgeVotesB = votesB.filter((v) => v.voteType === "judge");
+  const judgeVotesC = votesC.filter((v) => v.voteType === "judge");
 
   const totalAudienceVotes =
     audienceVotesA.length + audienceVotesB.length + audienceVotesC.length;

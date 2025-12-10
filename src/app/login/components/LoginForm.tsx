@@ -28,7 +28,7 @@ export function LoginForm({ role }: LoginFormProps) {
         enabled: !eventIdParam,
     });
 
-    const eventId = eventIdParam || currentEvent?.id;
+    const eventId = eventIdParam ?? currentEvent?.id;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

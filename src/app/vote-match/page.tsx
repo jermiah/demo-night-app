@@ -64,7 +64,6 @@ export default function VoteMatchPage() {
       awardId: "match-vote-award",
       demoId,
       matchId: activeMatch.id,
-      voteType: isJudge ? "judge" : "audience",
     });
   };
 
@@ -132,11 +131,10 @@ export default function VoteMatchPage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Startup A */}
         <Card
-          className={`cursor-pointer transition-all ${
-            selectedDemo === activeMatch.startupAId
+          className={`cursor-pointer transition-all ${selectedDemo === activeMatch.startupAId
               ? "ring-4 ring-blue-500"
               : "hover:shadow-lg"
-          }`}
+            }`}
           onClick={() => handleVote(activeMatch.startupAId)}
         >
           <CardHeader>
@@ -178,11 +176,10 @@ export default function VoteMatchPage() {
 
         {/* Startup B */}
         <Card
-          className={`cursor-pointer transition-all ${
-            selectedDemo === activeMatch.startupBId
+          className={`cursor-pointer transition-all ${selectedDemo === activeMatch.startupBId
               ? "ring-4 ring-blue-500"
               : "hover:shadow-lg"
-          }`}
+            }`}
           onClick={() => handleVote(activeMatch.startupBId)}
         >
           <CardHeader>

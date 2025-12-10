@@ -88,8 +88,8 @@ export default function AwardsAndVotingTab() {
       if (!stats) return;
 
       const value = isPitchNight && vote.amount ? vote.amount : 1;
-      // @ts-expect-error - voteType might not be in the type definition yet if not regenerated
-      const type = vote.voteType === "judge" ? "judge" : "audience";
+      const type =
+        "voteType" in vote && vote.voteType === "judge" ? "judge" : "audience";
 
       stats[type] += value;
 
